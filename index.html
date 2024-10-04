@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router/Switch Configuration Generator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 2em;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        #generateBtn, #copyBtn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        #generateBtn:hover, #copyBtn:hover {
+            background-color: #2980b9;
+        }
+
+        #configOutput {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Router/Switch Configuration Generator</h1>
+    <div class="container">
+        <div class="form-group">
+            <label for="deviceType">Select Device Type:</label>
+            <select id="deviceType">
+                <option value="router">Router</option>
+                <option value="switch">Switch</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="interfaceCount">Number of Interfaces:</label>
+            <input type="number" id="interfaceCount" min="1" placeholder="e.g. 2">
+        </div>
+
+        <div id="interfaceDetails"></div>
+
+        <div class="form-group">
+            <label for="routingProtocol">Select Routing Protocol:</label>
+            <select id="routingProtocol">
+                <option value="static">Static Routing</option>
+                <option value="ospf">OSPF</option>
+                <option value="eigrp">EIGRP</option>
+            </select>
+        </div>
+
+        <div id="buttons">
+            <button id="generateBtn">Generate Configuration</button>
+            <button id="copyBtn" style="display:none;">Copy Configuration</button>
+        </div>
+
+        <h2>Generated Configuration:</h2>
+        <pre id="configOutput"></pre>
+    </div>
+
+    <script>
+        document.getElementById('interfaceCount').addEventListener('change', generateInterfaceInputs);
+        document.getElementById('generateBtn').addEventListener('click', generateConfig);
+        document.getElementById('copyBtn').addEventListener('click', copyConfig);
+
+        // Generate input fields based on the number of interfaces
+        function generateInterfaceInputs() {
+            const interfaceCount = document.getElementById('interfaceCount').value;
+            const interfaceDetailsDiv = document.getElementById('interfaceDetails');
+            interfaceDetailsDiv.innerHTML = '';  // Clear previous inputs
+
+            for (let i = 0; i < interfaceCount; i++) {
+                const interfaceGroup = document.createElement('div');
+                interfaceGroup.classList.add('form-group');
+
+                interfaceGroup.innerHTML = `
+                    <label for="interfaceType${i}">Select Interface Type for Interface ${i + 1}:</label>
+                    <select id="interfaceType${i}">
+                        <option value="GigabitEthernet">GigabitEthernet</option>
+                        <option value="FastEthernet">FastEthernet</option>
+                        <option value="Serial">Serial</option>
+                    </select>
+                    <label for="ipAddress${i}">IP Address for Interface ${i + 1}:</label>
+                    <input type="text" id="ipAddress${i}" placeholder="e.g. 192.168.1.1">
+                    <label for="subnetMask${i}">Subnet Mask for Interface ${i + 1}:</label>
+                    <input type="text" id="subnetMask${i}" placeholder="e.g. 255.255.255.0">
+                `;
+
+                interfaceDetailsDiv.appendChild(interfaceGroup);
+            }
+        }
+
+        // Function to generate the configuration
+        function generateConfig() {
+            const deviceType = document.getElementById('deviceType').value;
+            const interfaceCount = document.getElementById('interfaceCount').value;
+            const routingProtocol = document.getElementById('routingProtocol').value;
+            const configOutput = document.getElementById('configOutput');
+
+            let config = `enable\nconfigure terminal\n! Configuration for ${deviceType}\n`;
+
+            // Loop through each interface and collect details
+            for (let i = 0; i < interfaceCount; i++) {
+                const interfaceType = document.getElementById(`interfaceType${i}`).value;
+                const ipAddress = document.getElementById(`ipAddress${i}`).value;
+                const subnetMask = document.getElementById(`subnetMask${i}`).value;
+
+                config += `interface ${interfaceType}0/${i}\n ip address ${ipAddress} ${subnetMask}\n no shutdown\n!\n`;
+            }
+
+            // Add routing protocol configuration
+            if (routingProtocol === 'static') {
+                config += "ip route 0.0.0.0 0.0.0.0 <next-hop-ip>\n";
+            } else if (routingProtocol === 'ospf') {
+                config += "router ospf 1\n network 0.0.0.0 0.0.0.0 area 0\n!\n";
+            } else if (routingProtocol === 'eigrp') {
+                config += "router eigrp 1\n network 0.0.0.0\n!\n";
+            }
+
+            config += "end\nwrite memory\n";
+
+            // Display the generated configuration
+            configOutput.textContent = config;
+            document.getElementById('copyBtn').style.display = 'block';  // Show copy button
+        }
+
+        // Function to copy the configuration to clipboard
+        function copyConfig() {
+            const configOutput = document.getElementById('configOutput');
+            navigator.clipboard.writeText(configOutput.textContent).then(() => {
+                alert("Configuration copied to clipboard!");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
