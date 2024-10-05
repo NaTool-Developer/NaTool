@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NA Tool</title>
+    <link rel="icon" href="Icon.png" type="image\png" />
+
     <style>
       html {
         scroll-behavior: smooth;
@@ -200,123 +202,143 @@
     </div>
 
     <script>
-       window.addEventListener("load", function() {
-    const loader = document.getElementById("loader");
+      window.addEventListener("load", function () {
+        const loader = document.getElementById("loader");
 
-    // Keep the loader visible for 3 seconds after the page is fully loaded
-    setTimeout(function() {
-        // Set opacity to 0 for a fade-out effect
-        loader.style.opacity = "0";
+        // Keep the loader visible for 3 seconds after the page is fully loaded
+        setTimeout(function () {
+          // Set opacity to 0 for a fade-out effect
+          loader.style.opacity = "0";
 
-        // Wait for the opacity transition (1 second) before hiding the loader
-        setTimeout(function() {
+          // Wait for the opacity transition (1 second) before hiding the loader
+          setTimeout(function () {
             loader.style.display = "none";
-        }, 1000);  // 1 second for the fade-out
-    }, 3000);  // Delay before starting the fade-out (3 seconds)
-});
+          }, 1000); // 1 second for the fade-out
+        }, 3000); // Delay before starting the fade-out (3 seconds)
+      });
 
-    
-            // Alert user on page load
-            window.alert("Welcome To Our NA Tool. Please follow the Network Rule when choosing IPs. The router will not allow two or more IPs from the same network on different interfaces.");
-    
-        // Event listeners for the buttons and input fields
-        document.getElementById('interfaceCount').addEventListener('input', generateInterfaceInputs);
-        document.getElementById('generateBtn').addEventListener('click', generateConfig);
-        document.getElementById('copyBtn').addEventListener('click', copyConfig);
-    
-        // Generate input fields based on the number of interfaces
-        function generateInterfaceInputs() {
-            const interfaceCount = parseInt(document.getElementById('interfaceCount').value);
-            const interfaceDetailsDiv = document.getElementById('interfaceDetails');
-            interfaceDetailsDiv.innerHTML = '';  // Clear previous inputs
-            
-            if (isNaN(interfaceCount) || interfaceCount < 1 || interfaceCount > 4) {
-                // Don't generate fields if the count is invalid
-                return;
-            }
-            
-            for (let i = 0; i < interfaceCount; i++) {
-                const interfaceGroup = document.createElement('div');
-                interfaceGroup.classList.add('form-group');
-    
-                // Create interface selection and IP/Subnet mask inputs with dynamic default values
-                interfaceGroup.innerHTML = `
-                <label for="interfaceType${i}">Select Interface Type for Interface ${i + 1}:</label>
+      // Alert user on page load
+      window.alert(
+        "Welcome To Our NA Tool. Please follow the Network Rule when choosing IPs. The router will not allow two or more IPs from the same network on different interfaces."
+      );
+
+      // Event listeners for the buttons and input fields
+      document
+        .getElementById("interfaceCount")
+        .addEventListener("input", generateInterfaceInputs);
+      document
+        .getElementById("generateBtn")
+        .addEventListener("click", generateConfig);
+      document.getElementById("copyBtn").addEventListener("click", copyConfig);
+
+      // Generate input fields based on the number of interfaces
+      function generateInterfaceInputs() {
+        const interfaceCount = parseInt(
+          document.getElementById("interfaceCount").value
+        );
+        const interfaceDetailsDiv = document.getElementById("interfaceDetails");
+        interfaceDetailsDiv.innerHTML = ""; // Clear previous inputs
+
+        if (isNaN(interfaceCount) || interfaceCount < 1 || interfaceCount > 4) {
+          // Don't generate fields if the count is invalid
+          return;
+        }
+
+        for (let i = 0; i < interfaceCount; i++) {
+          const interfaceGroup = document.createElement("div");
+          interfaceGroup.classList.add("form-group");
+
+          // Create interface selection and IP/Subnet mask inputs with dynamic default values
+          interfaceGroup.innerHTML = `
+                <label for="interfaceType${i}">Select Interface Type for Interface ${
+            i + 1
+          }:</label>
                     <select id="interfaceType${i}">
                         <option value="GigabitEthernet">GigabitEthernet</option>
                         <option value="FastEthernet">FastEthernet</option>
                         <option value="Serial">Serial</option>
                     </select>
-                <label for="ipAddress${i}">IP Address for Interface ${i + 1}:</label>
-                    <input type="text" id="ipAddress${i}" value="192.168.${i + 1}.1" placeholder="e.g. 192.168.${i + 1}.1">
-                <label for="subnetMask${i}">Subnet Mask for Interface ${i + 1}:</label>
+                <label for="ipAddress${i}">IP Address for Interface ${
+            i + 1
+          }:</label>
+                    <input type="text" id="ipAddress${i}" value="192.168.${
+            i + 1
+          }.1" placeholder="e.g. 192.168.${i + 1}.1">
+                <label for="subnetMask${i}">Subnet Mask for Interface ${
+            i + 1
+          }:</label>
                     <input type="text" id="subnetMask${i}" value="255.255.255.0" placeholder="255.255.255.0">
                 `;
-    
-                interfaceDetailsDiv.appendChild(interfaceGroup);
-            }
+
+          interfaceDetailsDiv.appendChild(interfaceGroup);
         }
-    
-        // Function to generate the configuration
-        function generateConfig() {
-            const deviceType = document.getElementById('deviceType').value;
-            const interfaceCount = document.getElementById('interfaceCount').value;
-            const configOutput = document.getElementById('configOutput');
-            
-            let config = `enable\nconfigure terminal\n! Configuration for ${deviceType}\n`;
-            
-            // Loop through each interface and collect details
-            for (let i = 0; i < interfaceCount; i++) {
-                const interfaceType = document.getElementById(`interfaceType${i}`).value;
-                const ipAddress = document.getElementById(`ipAddress${i}`).value;
-                const subnetMask = document.getElementById(`subnetMask${i}`).value;
-                
-                config += `interface ${interfaceType}0/${i}\n ip address ${ipAddress} ${subnetMask}\n no shutdown\n!\n`;
-            }
-    
-            config += "end\nwrite memory\n";
-            
-            // Display the generated configuration
-            configOutput.textContent = config;
-            document.getElementById('copyBtn').style.display = 'block';  // Show copy button
+      }
+
+      // Function to generate the configuration
+      function generateConfig() {
+        const deviceType = document.getElementById("deviceType").value;
+        const interfaceCount = document.getElementById("interfaceCount").value;
+        const configOutput = document.getElementById("configOutput");
+
+        let config = `enable\nconfigure terminal\n! Configuration for ${deviceType}\n`;
+
+        // Loop through each interface and collect details
+        for (let i = 0; i < interfaceCount; i++) {
+          const interfaceType = document.getElementById(
+            `interfaceType${i}`
+          ).value;
+          const ipAddress = document.getElementById(`ipAddress${i}`).value;
+          const subnetMask = document.getElementById(`subnetMask${i}`).value;
+
+          config += `interface ${interfaceType}0/${i}\n ip address ${ipAddress} ${subnetMask}\n no shutdown\n!\n`;
         }
-    
-        // Function to copy the configuration to clipboard
-        function copyConfig() {
-            const configOutput = document.getElementById('configOutput').textContent;
-    
-            // Check if clipboard API is supported
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(configOutput).then(() => {
-                    alert("Configuration copied to clipboard!");
-                }).catch(err => {
-                    console.error('Failed to copy: ', err);
-                    fallbackCopy(configOutput);  // Use fallback if error occurs
-                });
-            } else {
-                // Fallback for older browsers
-                fallbackCopy(configOutput);
-            }
+
+        config += "end\nwrite memory\n";
+
+        // Display the generated configuration
+        configOutput.textContent = config;
+        document.getElementById("copyBtn").style.display = "block"; // Show copy button
+      }
+
+      // Function to copy the configuration to clipboard
+      function copyConfig() {
+        const configOutput =
+          document.getElementById("configOutput").textContent;
+
+        // Check if clipboard API is supported
+        if (navigator.clipboard) {
+          navigator.clipboard
+            .writeText(configOutput)
+            .then(() => {
+              alert("Configuration copied to clipboard!");
+            })
+            .catch((err) => {
+              console.error("Failed to copy: ", err);
+              fallbackCopy(configOutput); // Use fallback if error occurs
+            });
+        } else {
+          // Fallback for older browsers
+          fallbackCopy(configOutput);
         }
-    
-        // Fallback method using execCommand for older browsers
-        function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-    
-            try {
-                document.execCommand('copy');
-                alert("Configuration copied to clipboard!");
-            } catch (err) {
-                console.error('Fallback: Unable to copy', err);
-                alert("Copy failed. Please manually copy the text.");
-            }
-    
-            document.body.removeChild(textArea);
+      }
+
+      // Fallback method using execCommand for older browsers
+      function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+
+        try {
+          document.execCommand("copy");
+          alert("Configuration copied to clipboard!");
+        } catch (err) {
+          console.error("Fallback: Unable to copy", err);
+          alert("Copy failed. Please manually copy the text.");
         }
+
+        document.body.removeChild(textArea);
+      }
     </script>
-    
   </body>
 </html>
