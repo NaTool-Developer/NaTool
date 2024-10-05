@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Router/Switch Configuration Generator</title>
+    <title>NA Tool</title>
     <style>
+        html{
+        scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f0f0f0;
-            color: #333;
+            color: #000000;
             margin: 0;
             padding: 0;
         }
@@ -25,7 +29,8 @@
             margin: 20px auto;
             padding: 20px;
             background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 30px 30px rgba(0, 0, 0, 0.1);
+            border:solid 3px black;
             border-radius: 10px;
         }
 
@@ -37,6 +42,15 @@
             font-weight: bold;
             margin-bottom: 5px;
             display: block;
+        }
+
+        .RorS {
+            text-align: center;
+        }
+
+        #deviceType {
+            width: 30%;
+            margin-left: 35%;
         }
 
         input, select {
@@ -79,14 +93,69 @@
             justify-content: space-between;
             margin-top: 20px;
         }
+
+        #loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #282c34;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1; /* Start with full opacity */
+    transition: opacity 1s ease-in-out; /* Transition for smooth fading */
+}
+
+/* Optional: Keep the spinner animation */
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 2s linear infinite;
+}
+
+
+        #T1_Loader{
+            color: white;
+            animation: zoom  1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes zoom {
+        0% { transform: scale(1); } 
+        50% { transform: scale(1.2); } 
+        100% { transform: scale(1); }
+        
+
+        }
+        @keyframes Gost {
+        0% {opacity: 1;  } 
+        80% { opacity: 1; } 
+        100% { opacity: 0; }
+        }
+
     </style>
 </head>
 <body>
-
+    <div id="loader">
+        <div class="spinner"></div>
+        <h1 id="T1_Loader">صلي علي النبي</h1>
+    </div>
     <h1>Router/Switch Configuration Generator</h1>
     <div class="container">
         <div class="form-group">
-            <label for="deviceType">Select Device Type:</label>
+            <label for="deviceType" class="RorS">Select Device Type:</label>
             <select id="deviceType">
                 <option value="router">Router</option>
                 <option value="switch">Switch</option>
@@ -95,19 +164,10 @@
 
         <div class="form-group">
             <label for="interfaceCount">Number of Interfaces:</label>
-            <input type="number" id="interfaceCount" min="1" placeholder="e.g. 2">
+            <input type="number" id="interfaceCount" min="1" max="4" placeholder="Ex: 2">
         </div>
 
         <div id="interfaceDetails"></div>
-
-        <div class="form-group">
-            <label for="routingProtocol">Select Routing Protocol:</label>
-            <select id="routingProtocol">
-                <option value="static">Static Routing</option>
-                <option value="ospf">OSPF</option>
-                <option value="eigrp">EIGRP</option>
-            </select>
-        </div>
 
         <div id="buttons">
             <button id="generateBtn">Generate Configuration</button>
@@ -117,35 +177,58 @@
         <h2>Generated Configuration:</h2>
         <pre id="configOutput"></pre>
     </div>
-
+    
     <script>
-        document.getElementById('interfaceCount').addEventListener('change', generateInterfaceInputs);
+    window.addEventListener("load", function() {
+    const loader = document.getElementById("loader");
+
+    // Delay hiding the loader by 3 seconds after the page is fully loaded
+    setTimeout(function() {
+        // Set opacity to 0 for a fade-out effect
+        loader.style.opacity = "0";
+        
+        // Wait for the transition to finish before setting display to none
+        setTimeout(function() {
+            loader.style.display = "none";
+        }, 1000); // Wait for the opacity transition (1 second in this case)
+    }, 3000);  // Keep the loader visible for 3 seconds
+        });
+
+window.alert("Welcome To Our NA Tool. Please follow the Network Rule when choosing IPs. The router will not allow two or more IPs from the same network on different interfaces.");
+
+        
+        document.getElementById('interfaceCount').addEventListener('input', generateInterfaceInputs);
         document.getElementById('generateBtn').addEventListener('click', generateConfig);
         document.getElementById('copyBtn').addEventListener('click', copyConfig);
-
+        
         // Generate input fields based on the number of interfaces
         function generateInterfaceInputs() {
-            const interfaceCount = document.getElementById('interfaceCount').value;
+            const interfaceCount = parseInt(document.getElementById('interfaceCount').value);
             const interfaceDetailsDiv = document.getElementById('interfaceDetails');
             interfaceDetailsDiv.innerHTML = '';  // Clear previous inputs
-
+            
+            if (isNaN(interfaceCount) || interfaceCount < 1 || interfaceCount > 4) {
+                // Don't generate fields if the count is invalid
+                return;
+            }
+            
             for (let i = 0; i < interfaceCount; i++) {
                 const interfaceGroup = document.createElement('div');
                 interfaceGroup.classList.add('form-group');
 
                 interfaceGroup.innerHTML = `
-                    <label for="interfaceType${i}">Select Interface Type for Interface ${i + 1}:</label>
+                <label for="interfaceType${i}">Select Interface Type for Interface ${i + 1}:</label>
                     <select id="interfaceType${i}">
                         <option value="GigabitEthernet">GigabitEthernet</option>
                         <option value="FastEthernet">FastEthernet</option>
                         <option value="Serial">Serial</option>
-                    </select>
-                    <label for="ipAddress${i}">IP Address for Interface ${i + 1}:</label>
-                    <input type="text" id="ipAddress${i}" placeholder="e.g. 192.168.1.1">
-                    <label for="subnetMask${i}">Subnet Mask for Interface ${i + 1}:</label>
-                    <input type="text" id="subnetMask${i}" placeholder="e.g. 255.255.255.0">
+                        </select>
+                        <label for="ipAddress${i}">IP Address for Interface ${i + 1}:</label>
+                        <input type="text" id="ipAddress${i}" placeholder="e.g. 192.168.1.1">
+                        <label for="subnetMask${i}">Subnet Mask for Interface ${i + 1}:</label>
+                        <input type="text" id="subnetMask${i}" placeholder="e.g. 255.255.255.0">
                 `;
-
+                
                 interfaceDetailsDiv.appendChild(interfaceGroup);
             }
         }
@@ -154,36 +237,26 @@
         function generateConfig() {
             const deviceType = document.getElementById('deviceType').value;
             const interfaceCount = document.getElementById('interfaceCount').value;
-            const routingProtocol = document.getElementById('routingProtocol').value;
             const configOutput = document.getElementById('configOutput');
-
+            
             let config = `enable\nconfigure terminal\n! Configuration for ${deviceType}\n`;
-
+            
             // Loop through each interface and collect details
             for (let i = 0; i < interfaceCount; i++) {
                 const interfaceType = document.getElementById(`interfaceType${i}`).value;
                 const ipAddress = document.getElementById(`ipAddress${i}`).value;
                 const subnetMask = document.getElementById(`subnetMask${i}`).value;
-
+                
                 config += `interface ${interfaceType}0/${i}\n ip address ${ipAddress} ${subnetMask}\n no shutdown\n!\n`;
             }
 
-            // Add routing protocol configuration
-            if (routingProtocol === 'static') {
-                config += "ip route 0.0.0.0 0.0.0.0 <next-hop-ip>\n";
-            } else if (routingProtocol === 'ospf') {
-                config += "router ospf 1\n network 0.0.0.0 0.0.0.0 area 0\n!\n";
-            } else if (routingProtocol === 'eigrp') {
-                config += "router eigrp 1\n network 0.0.0.0\n!\n";
-            }
-
             config += "end\nwrite memory\n";
-
+            
             // Display the generated configuration
             configOutput.textContent = config;
             document.getElementById('copyBtn').style.display = 'block';  // Show copy button
         }
-
+        
         // Function to copy the configuration to clipboard
         function copyConfig() {
             const configOutput = document.getElementById('configOutput');
@@ -193,6 +266,6 @@
                 console.error('Failed to copy: ', err);
             });
         }
-    </script>
+        </script>
 </body>
 </html>
